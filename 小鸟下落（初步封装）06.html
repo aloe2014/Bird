@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+    </head>
+    <body>
+    <canvas id="cv" width="800" height="600"></canvas>
+    <script src="JS/utils.js"></script>
+    <script src="JS/birds.js"></script>
+    <script src="JS/sky.js"></script>
+    <script src="JS/land.js"></script>
+    <script src="JS/pipe.js"></script>
+    <script type="text/javascript">
+
+
+    var cv=document.querySelector("#cv");
+    var ctx=cv.getContext("2d");
+
+	cv.style.border="1px solid red";
+
+	/*//引入图片
+	var img =  new Image();
+	img.src="imgs/fy/birds.png";*/
+
+	var imgArr = ["birds","land","pipe1","pipe2","sky"];
+
+	//调用函数（让小鸟煽动翅膀，并确定每次下落时y轴的位置）
+	Fly.loadImgs(imgArr,function(imgList){
+		var lastTime=new Date();
+
+		//存储所有的游戏对象
+		var roleList=[];
+
+		//创建小鸟对象
+		var bird=new Fly.Bird({
+			ctx:ctx,
+			img:imgList.birds
+		});
+
+		//创建天空对象
+		for(var i=0;i<2;i++){
+			var sky=new Fly.sky({
+			ctx:ctx,
+			img:imgList.sky,
+			x:i*imgList.sky.width,
+		
+			});
+			roleList.push(sky)
+		}
+
+		//创建管道对象
+		for(var i=0;i<6;i++){
+			roleList.push(
+				new Fly.pipe({
+					ctx:ctx,
+					imgTop:imgList.pipe2,
+					imgDown:imgList.pipe1,
+					x:i*imgList.pipe1.width*3+300
+
+				})
+			)
+		}
+
+		//创建土地对象
+		for(var i=0;i<5;i++){
+			roleList.push(		
+				new Fly.land({
+					ctx:ctx,
+					img:imgList.land,
+					x:i*imgList.land.width,
+					y:imgList.sky.height-imgList.land.height
+
+				})
+			)	
+		}
+	
+		var flag=true;
+
+		//利用requestAnimationFrame制作动画效果
+		(function render(){
+			var curTime = new Date();
+			var delta = curTime-lastTime;//两次渲染之间的时间间隔
+			lastTime = curTime;//修改每次下落前的初始时间
+
+			ctx.clearRect(0 , 0, cv.width, cv.height);
+
+			//小鸟旋转改变了当前坐标
+			ctx.save();
+
+			//统一绘制
+			roleList.forEach(function(role){
+				role.draw(delta);
+			})
+
+			//绘制小鸟（英雄，单独绘制）
+			bird.draw(delta);
+	
+			ctx.restore();
+
+		
+
+		if(bird.y<=0||bird.y>=(cv.height-imgList.land.height)||this.ctx.isPointInPath(bird.x, bird.y)){
+			flag=false;
+		}
+		
+		console.log(bird.x, bird.y);
+
+		if(flag){
+			window.requestAnimationFrame(render);
+		}
+		
+		})()
+
+		//给canvas绑定点击事件
+		cv.addEventListener("click", function(){
+			bird.changeSpeed(-0.3);//给速度一个负值，让其向上飞
+			// console.log(123);
+		})
+		
+	
+	});
+
+
+	
+	
+	</script>
+    
+    </body>
+</html>
